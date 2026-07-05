@@ -18,7 +18,7 @@ export function AccountLockedPage({ retryAfterMinutes, onBack }: Props) {
           </div>
           <h1 className="text-lg font-semibold text-gray-900">Cuenta bloqueada temporalmente</h1>
           <p className="text-sm text-gray-600">
-            Has excedido el número máximo de intentos fallidos (3). Por seguridad, tu cuenta ha
+            Has excedido el número máximo de intentos fallidos (5). Por seguridad, tu cuenta ha
             sido bloqueada durante {retryAfterMinutes} minuto(s). Intenta nuevamente más tarde.
           </p>
           <Button onClick={onBack} className="mt-2 w-full bg-slate-600 hover:bg-slate-700">
