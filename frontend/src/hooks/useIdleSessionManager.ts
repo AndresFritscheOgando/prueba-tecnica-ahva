@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { authApi } from '@/api/auth';
+import { http, type ApiEnvelope } from '@/lib/http';
+import type { AuthResponse } from '@/api/auth';
 import { useAuth } from '@/context/AuthContext';
 
 // Lower these temporarily to QA the feature without waiting real minutes.
@@ -41,7 +42,9 @@ export function useIdleSessionManager() {
     if (isExtendingRef.current || !refreshTokenRef.current) return;
     isExtendingRef.current = true;
     try {
-      const res = await authApi.refresh(refreshTokenRef.current);
+      const res = await http
+        .post<ApiEnvelope<AuthResponse>>('/refresh', { refreshToken: refreshTokenRef.current })
+        .then((r) => r.data.data!);
       setSessionRef.current(res);
       refreshTokenRef.current = res.refreshToken;
       lastActivityRef.current = Date.now();

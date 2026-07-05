@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, type LoginFormValues } from '@/lib/loginSchema';
-import { useLoginMutation } from '@/hooks/useLogin';
-import { ApiError } from '@/api/auth';
+import { useLogin } from '@/hooks/useLogin';
+import { ApiError } from '@/lib/http';
 import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +21,7 @@ interface Props {
 export function LoginPage({ onSwitch, onLocked }: Props) {
   const { setSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const loginMutation = useLoginMutation();
+  const loginMutation = useLogin();
 
   const {
     register,

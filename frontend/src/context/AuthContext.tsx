@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { ApiError, authApi, type AuthResponse } from '../api/auth';
+import { http, ApiError, type ApiEnvelope } from '@/lib/http';
+import type { AuthResponse } from '../api/auth';
 
 function toErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof TypeError) {
@@ -46,7 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     try {
-      if (state.accessToken) await authApi.logout(state.accessToken);
+      if (state.accessToken) {
+        await http.post('/logout', undefined, {
+          headers: { Authorization: `Bearer ${state.accessToken}` },
+        });
+      }
     } catch (err) {
       toast.error(toErrorMessage(err, 'No se pudo cerrar sesión'));
     } finally {
@@ -60,7 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       if (err instanceof ApiError && err.status === 401 && state.refreshToken) {
         try {
-          const res = await authApi.refresh(state.refreshToken);
+          const res = await http
+            .post<ApiEnvelope<AuthResponse>>('/refresh', { refreshToken: state.refreshToken })
+            .then((r) => r.data.data!);
           save(res);
           return await fn(res.accessToken);
         } catch {

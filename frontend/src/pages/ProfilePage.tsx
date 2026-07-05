@@ -15,7 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile } from '../api/auth';
 import { profileSchema, type ProfileFormOutput, type ProfileFormValues } from '@/lib/profileSchema';
-import { useProfileQuery, useUpdateProfileMutation } from '@/hooks/useProfile';
+import { useMe, useUpdateMe } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -112,8 +112,8 @@ export function ProfilePage() {
   const { accessToken, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
 
-  const profileQuery = useProfileQuery(accessToken);
-  const updateMutation = useUpdateProfileMutation(accessToken);
+  const profileQuery = useMe(accessToken);
+  const updateMutation = useUpdateMe(accessToken);
 
   const {
     register,

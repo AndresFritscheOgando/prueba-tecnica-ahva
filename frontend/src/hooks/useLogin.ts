@@ -1,9 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import { authApi } from '@/api/auth';
+import { http, type ApiEnvelope } from '@/lib/http';
+import type { AuthResponse } from '@/api/auth';
 import type { LoginFormValues } from '@/lib/loginSchema';
 
-export function useLoginMutation() {
+export function useLogin() {
   return useMutation({
-    mutationFn: (values: LoginFormValues) => authApi.login(values.username, values.password),
+    mutationFn: (values: LoginFormValues) =>
+      http.post<ApiEnvelope<AuthResponse>>('/login', values).then((res) => res.data.data!),
   });
 }

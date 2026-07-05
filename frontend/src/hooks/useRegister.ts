@@ -1,10 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import { authApi } from '@/api/auth';
+import { http, type ApiEnvelope } from '@/lib/http';
+import type { AuthResponse } from '@/api/auth';
 import type { RegisterFormValues } from '@/lib/registerSchema';
 
-export function useRegisterMutation() {
+export function useRegister() {
   return useMutation({
     mutationFn: (values: RegisterFormValues) =>
-      authApi.register(values.username, values.email, values.password),
+      http.post<ApiEnvelope<AuthResponse>>('/register', values).then((res) => res.data.data!),
   });
 }
