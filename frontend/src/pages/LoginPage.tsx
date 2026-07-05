@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { loginSchema, type LoginFormValues } from '@/lib/loginSchema';
+import { loginSchema, type LoginFormValues } from '@/lib/schemas/loginSchema';
 import { useLogin } from '@/hooks/useLogin';
 import { ApiError } from '@/lib/http';
 import { AuthLayout } from '@/components/auth-layout';

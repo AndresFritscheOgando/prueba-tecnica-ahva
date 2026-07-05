@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile } from '../api/auth';
-import { profileSchema, type ProfileFormOutput, type ProfileFormValues } from '@/lib/profileSchema';
+import { profileSchema, type ProfileFormOutput, type ProfileFormValues } from '@/lib/schemas/profileSchema';
 import { useMe, useUpdateMe } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
