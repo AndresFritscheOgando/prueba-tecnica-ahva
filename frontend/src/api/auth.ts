@@ -6,6 +6,26 @@ export interface AuthResponse {
   expiresIn: number;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string | null;
+  paternalSurname: string | null;
+  maternalSurname: string | null;
+  documentType: string | null;
+  documentNumber: string | null;
+  birthDate: string | null;
+  nationality: string | null;
+  sex: string | null;
+  secondaryEmail: string | null;
+  mobilePhone: string | null;
+  secondaryPhoneType: string | null;
+  secondaryPhone: string | null;
+  contractType: string | null;
+  contractDate: string | null;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -48,4 +68,27 @@ export const authApi = {
 
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/refresh', { refreshToken }),
+
+  me: async (accessToken: string): Promise<UserProfile> => {
+    const res = await fetch(`${BASE}/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const envelope: ApiResponse<UserProfile> = await res.json();
+    if (!res.ok) throw new Error(envelope.error ?? 'Failed to load profile');
+    return envelope.data!;
+  },
+
+  updateMe: async (accessToken: string, profile: Omit<UserProfile, 'id' | 'username'>): Promise<UserProfile> => {
+    const res = await fetch(`${BASE}/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(profile),
+    });
+    const envelope: ApiResponse<UserProfile> = await res.json();
+    if (!res.ok) throw new Error(envelope.error ?? 'Failed to update profile');
+    return envelope.data!;
+  },
 };
