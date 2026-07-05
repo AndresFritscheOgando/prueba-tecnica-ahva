@@ -8,7 +8,7 @@ namespace Ahva.Auth.Services;
 
 public class AuthService(AppDbContext db, ITokenService tokenService, IConfiguration config) : IAuthService
 {
-    private static readonly int MaxFailedAttempts = 3;
+    private static readonly int MaxFailedAttempts = 5;
     private static readonly int LockoutMinutes = 15;
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -35,7 +35,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.Username == request.Username)
-            ?? throw new UnauthorizedAccessException("Invalid credentials.");
+            ?? throw new UnauthorizedAccessException("Invalid username.");
 
         if (user.LockedUntil.HasValue && user.LockedUntil > DateTime.UtcNow)
         {
@@ -51,7 +51,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
                 user.LockedUntil = DateTime.UtcNow.AddMinutes(LockoutMinutes);
 
             await db.SaveChangesAsync();
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizedAccessException("Invalid password.");
         }
 
         user.FailedLoginAttempts = 0;
