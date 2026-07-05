@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { HomePage } from './pages/HomePage';
+import { Toaster } from '@/components/ui/sonner';
 
 function AppContent() {
   const { accessToken } = useAuth();
@@ -19,6 +20,7 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Toaster />
     </AuthProvider>
   );
 }

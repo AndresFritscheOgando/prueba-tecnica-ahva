@@ -32,11 +32,19 @@ export const authApi = {
   login: (username: string, password: string) =>
     request<AuthResponse>('/login', { username, password }),
 
-  logout: (accessToken: string) =>
-    fetch(`${BASE}/logout`, {
+  logout: async (accessToken: string) => {
+    const res = await fetch(`${BASE}/logout`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
-    }),
+    });
+    if (!res.ok) {
+      const message = await res
+        .json()
+        .then((envelope: ApiResponse<never>) => envelope.error)
+        .catch(() => undefined);
+      throw new Error(message ?? 'Logout failed');
+    }
+  },
 
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/refresh', { refreshToken }),

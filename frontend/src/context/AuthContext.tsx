@@ -1,5 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { toast } from 'sonner';
 import { authApi, type AuthResponse } from '../api/auth';
+
+function toErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof TypeError) {
+    return 'Unable to reach the server. Please check your connection and try again.';
+  }
+  return err instanceof Error ? err.message : fallback;
+}
 
 interface AuthState {
   accessToken: string | null;
@@ -33,16 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(username: string, password: string) {
-    save(await authApi.login(username, password));
+    try {
+      save(await authApi.login(username, password));
+    } catch (err) {
+      toast.error(toErrorMessage(err, 'Login failed'));
+    }
   }
 
   async function register(username: string, email: string, password: string) {
-    save(await authApi.register(username, email, password));
+    try {
+      save(await authApi.register(username, email, password));
+    } catch (err) {
+      toast.error(toErrorMessage(err, 'Registration failed'));
+    }
   }
 
   async function logout() {
-    if (state.accessToken) await authApi.logout(state.accessToken);
-    clear();
+    try {
+      if (state.accessToken) await authApi.logout(state.accessToken);
+    } catch (err) {
+      toast.error(toErrorMessage(err, 'Logout failed'));
+    } finally {
+      clear();
+    }
   }
 
   return (

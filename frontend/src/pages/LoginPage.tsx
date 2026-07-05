@@ -16,17 +16,13 @@ export function LoginPage({ onSwitch }: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       await login(username, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -74,8 +70,6 @@ export function LoginPage({ onSwitch }: Props) {
                 </button>
               </div>
             </div>
-
-            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <Button type="button" variant="link" className="h-auto self-end p-0 text-sm">
               ¿Olvidó su contraseña?

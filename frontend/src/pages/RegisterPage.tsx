@@ -17,17 +17,13 @@ export function RegisterPage({ onSwitch }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       await register(username, email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -92,8 +88,6 @@ export function RegisterPage({ onSwitch }: Props) {
                 </button>
               </div>
             </div>
-
-            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <Button type="submit" disabled={loading} className="w-full bg-slate-600 hover:bg-slate-700">
               {loading ? 'Creando…' : 'Crear cuenta'}
