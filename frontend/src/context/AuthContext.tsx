@@ -15,7 +15,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (username: string, password: string) => Promise<void>;
+  setSession: (res: AuthResponse) => void;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -40,14 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ accessToken: null, refreshToken: null });
   }
 
-  async function login(username: string, password: string) {
-    try {
-      save(await authApi.login(username, password));
-    } catch (err) {
-      toast.error(toErrorMessage(err, 'Login failed'));
-    }
-  }
-
   async function register(username: string, email: string, password: string) {
     try {
       save(await authApi.register(username, email, password));
@@ -67,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider value={{ ...state, setSession: save, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
