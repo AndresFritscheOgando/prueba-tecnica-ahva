@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:5000/api/auth';
+const BASE = 'http://localhost:5252/api/auth';
 
 export interface AuthResponse {
   accessToken: string;
@@ -29,8 +29,8 @@ export const authApi = {
   register: (username: string, email: string, password: string) =>
     request<AuthResponse>('/register', { username, email, password }),
 
-  login: (email: string, password: string) =>
-    request<AuthResponse>('/login', { email, password }),
+  login: (username: string, password: string) =>
+    request<AuthResponse>('/login', { username, password }),
 
   logout: (accessToken: string) =>
     fetch(`${BASE}/logout`, {
