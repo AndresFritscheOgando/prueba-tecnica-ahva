@@ -11,4 +11,19 @@ public class User
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiry { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public string? FirstName { get; set; }
+    public string? PaternalSurname { get; set; }
+    public string? MaternalSurname { get; set; }
+    public string? DocumentType { get; set; }
+    public string? DocumentNumber { get; set; }
+    public DateOnly? BirthDate { get; set; }
+    public string? Nationality { get; set; }
+    public string? Sex { get; set; }
+    public string? SecondaryEmail { get; set; }
+    public string? MobilePhone { get; set; }
+    public string? SecondaryPhoneType { get; set; }
+    public string? SecondaryPhone { get; set; }
+    public string? ContractType { get; set; }
+    public DateOnly? ContractDate { get; set; }
 }

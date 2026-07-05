@@ -42,4 +42,22 @@ public class AuthController(IAuthService authService) : ControllerBase
         var response = await authService.RefreshAsync(request);
         return Ok(ApiResponse<AuthResponse>.Ok(response));
     }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var profile = await authService.GetProfileAsync(userId);
+        return Ok(ApiResponse<UserProfileResponse>.Ok(profile));
+    }
+
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var profile = await authService.UpdateProfileAsync(userId, request);
+        return Ok(ApiResponse<UserProfileResponse>.Ok(profile));
+    }
 }

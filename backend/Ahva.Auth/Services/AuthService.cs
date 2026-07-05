@@ -81,6 +81,52 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
         return await IssueTokens(user);
     }
 
+    public async Task<UserProfileResponse> GetProfileAsync(Guid userId)
+    {
+        var user = await db.Users.FindAsync(userId)
+            ?? throw new UnauthorizedAccessException("User not found.");
+
+        return MapToProfile(user);
+    }
+
+    public async Task<UserProfileResponse> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var user = await db.Users.FindAsync(userId)
+            ?? throw new UnauthorizedAccessException("User not found.");
+
+        var newEmail = request.Email.ToLowerInvariant();
+        if (newEmail != user.Email && await db.Users.AnyAsync(u => u.Email == newEmail))
+            throw new ConflictException("Email already in use.");
+
+        user.Email = newEmail;
+        user.FirstName = request.FirstName;
+        user.PaternalSurname = request.PaternalSurname;
+        user.MaternalSurname = request.MaternalSurname;
+        user.DocumentType = request.DocumentType;
+        user.DocumentNumber = request.DocumentNumber;
+        user.BirthDate = request.BirthDate;
+        user.Nationality = request.Nationality;
+        user.Sex = request.Sex;
+        user.SecondaryEmail = request.SecondaryEmail;
+        user.MobilePhone = request.MobilePhone;
+        user.SecondaryPhoneType = request.SecondaryPhoneType;
+        user.SecondaryPhone = request.SecondaryPhone;
+        user.ContractType = request.ContractType;
+        user.ContractDate = request.ContractDate;
+
+        await db.SaveChangesAsync();
+        return MapToProfile(user);
+    }
+
+    private static UserProfileResponse MapToProfile(User user) => new(
+        user.Id, user.Username, user.Email,
+        user.FirstName, user.PaternalSurname, user.MaternalSurname,
+        user.DocumentType, user.DocumentNumber, user.BirthDate,
+        user.Nationality, user.Sex, user.SecondaryEmail,
+        user.MobilePhone, user.SecondaryPhoneType, user.SecondaryPhone,
+        user.ContractType, user.ContractDate
+    );
+
     private async Task<AuthResponse> IssueTokens(User user)
     {
         var refreshDays = int.Parse(config["Jwt:RefreshTokenDays"] ?? "7");

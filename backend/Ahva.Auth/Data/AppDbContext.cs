@@ -18,6 +18,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(u => u.Username).HasMaxLength(50);
             e.Property(u => u.PasswordHash).HasMaxLength(256);
             e.Property(u => u.RefreshToken).HasMaxLength(512);
+            e.Property(u => u.FirstName).HasMaxLength(150);
+            e.Property(u => u.PaternalSurname).HasMaxLength(100);
+            e.Property(u => u.MaternalSurname).HasMaxLength(100);
+            e.Property(u => u.DocumentType).HasMaxLength(20);
+            e.Property(u => u.DocumentNumber).HasMaxLength(20);
+            e.Property(u => u.Nationality).HasMaxLength(100);
+            e.Property(u => u.Sex).HasMaxLength(20);
+            e.Property(u => u.SecondaryEmail).HasMaxLength(256);
+            e.Property(u => u.MobilePhone).HasMaxLength(20);
+            e.Property(u => u.SecondaryPhoneType).HasMaxLength(20);
+            e.Property(u => u.SecondaryPhone).HasMaxLength(20);
+            e.Property(u => u.ContractType).HasMaxLength(50);
         });
     }
 }
