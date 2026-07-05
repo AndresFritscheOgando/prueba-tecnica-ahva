@@ -18,8 +18,12 @@ public class ExceptionHandler : ExceptionFilterAttribute
             _                            => (HttpStatusCode.InternalServerError, "An unexpected error occurred."),
         };
 
+        var response = ApiResponse<object>.Fail(message);
+        if (context.Exception is AccountLockedException locked)
+            response.RetryAfterMinutes = locked.RetryAfterMinutes;
+
         context.HttpContext.Response.StatusCode = (int)statusCode;
-        context.Result = new JsonResult(ApiResponse<object>.Fail(message));
+        context.Result = new JsonResult(response);
         context.ExceptionHandled = true;
     }
 }

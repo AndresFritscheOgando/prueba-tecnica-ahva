@@ -31,6 +31,19 @@ interface ApiResponse<T> {
   data?: T;
   message: string;
   error?: string;
+  retryAfterMinutes?: number;
+}
+
+export class ApiError extends Error {
+  status: number;
+  retryAfterMinutes?: number;
+
+  constructor(message: string, status: number, retryAfterMinutes?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.retryAfterMinutes = retryAfterMinutes;
+  }
 }
 
 async function request<T>(path: string, body: unknown): Promise<T> {
@@ -41,7 +54,7 @@ async function request<T>(path: string, body: unknown): Promise<T> {
   });
 
   const envelope: ApiResponse<T> = await res.json();
-  if (!res.ok) throw new Error(envelope.error ?? 'Request failed');
+  if (!res.ok) throw new ApiError(envelope.error ?? 'Request failed', res.status, envelope.retryAfterMinutes);
   return envelope.data!;
 }
 

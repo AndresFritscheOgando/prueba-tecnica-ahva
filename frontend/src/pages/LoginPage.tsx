@@ -6,6 +6,7 @@ import { Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, type LoginFormValues } from '@/lib/loginSchema';
 import { useLoginMutation } from '@/hooks/useLogin';
+import { ApiError } from '@/api/auth';
 import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,9 +15,10 @@ import { Label } from '@/components/ui/label';
 
 interface Props {
   onSwitch: () => void;
+  onLocked: (retryAfterMinutes: number) => void;
 }
 
-export function LoginPage({ onSwitch }: Props) {
+export function LoginPage({ onSwitch, onLocked }: Props) {
   const { setSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLoginMutation();
@@ -33,7 +35,13 @@ export function LoginPage({ onSwitch }: Props) {
   function onSubmit(values: LoginFormValues) {
     loginMutation.mutate(values, {
       onSuccess: setSession,
-      onError: (err) => toast.error(err instanceof Error ? err.message : 'Login failed'),
+      onError: (err) => {
+        if (err instanceof ApiError && err.status === 403) {
+          onLocked(err.retryAfterMinutes ?? 15);
+          return;
+        }
+        toast.error(err instanceof Error ? err.message : 'Login failed');
+      },
     });
   }
 

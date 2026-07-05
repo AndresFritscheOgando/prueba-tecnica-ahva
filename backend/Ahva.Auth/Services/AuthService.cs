@@ -40,7 +40,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
         if (user.LockedUntil.HasValue && user.LockedUntil > DateTime.UtcNow)
         {
             var remaining = (int)Math.Ceiling((user.LockedUntil.Value - DateTime.UtcNow).TotalMinutes);
-            throw new AccountLockedException($"Account locked. Try again in {remaining} minute(s).");
+            throw new AccountLockedException($"Account locked. Try again in {remaining} minute(s).", remaining);
         }
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
