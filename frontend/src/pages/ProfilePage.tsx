@@ -15,7 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile } from '../api/auth';
 import { profileSchema, type ProfileFormOutput, type ProfileFormValues } from '@/lib/schemas/profileSchema';
-import { useMe, useUpdateMe } from '@/hooks/useProfile';
+import { useMe, useUpdateMe } from '@/hooks/auth/useProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
