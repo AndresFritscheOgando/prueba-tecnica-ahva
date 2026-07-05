@@ -34,7 +34,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant())
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Username == request.Username)
             ?? throw new UnauthorizedAccessException("Invalid credentials.");
 
         if (user.LockedUntil.HasValue && user.LockedUntil > DateTime.UtcNow)
