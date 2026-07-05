@@ -54,7 +54,7 @@ async function request<T>(path: string, body: unknown): Promise<T> {
   });
 
   const envelope: ApiResponse<T> = await res.json();
-  if (!res.ok) throw new ApiError(envelope.error ?? 'Request failed', res.status, envelope.retryAfterMinutes);
+  if (!res.ok) throw new ApiError(envelope.error ?? 'Ocurrió un error en la solicitud', res.status, envelope.retryAfterMinutes);
   return envelope.data!;
 }
 
@@ -75,7 +75,7 @@ export const authApi = {
         .json()
         .then((envelope: ApiResponse<never>) => envelope.error)
         .catch(() => undefined);
-      throw new Error(message ?? 'Logout failed');
+      throw new Error(message ?? 'No se pudo cerrar sesión');
     }
   },
 
@@ -87,7 +87,7 @@ export const authApi = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const envelope: ApiResponse<UserProfile> = await res.json();
-    if (!res.ok) throw new Error(envelope.error ?? 'Failed to load profile');
+    if (!res.ok) throw new Error(envelope.error ?? 'No se pudo cargar el perfil');
     return envelope.data!;
   },
 
@@ -101,7 +101,7 @@ export const authApi = {
       body: JSON.stringify(profile),
     });
     const envelope: ApiResponse<UserProfile> = await res.json();
-    if (!res.ok) throw new Error(envelope.error ?? 'Failed to update profile');
+    if (!res.ok) throw new Error(envelope.error ?? 'No se pudo actualizar el perfil');
     return envelope.data!;
   },
 };

@@ -131,7 +131,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (profileQuery.error) {
-      toast.error(profileQuery.error instanceof Error ? profileQuery.error.message : 'Failed to load profile');
+      toast.error(profileQuery.error instanceof Error ? profileQuery.error.message : 'No se pudo cargar el perfil');
     }
   }, [profileQuery.error]);
 
@@ -140,7 +140,7 @@ export function ProfilePage() {
       { ...values, secondaryPhoneType: profileQuery.data?.secondaryPhoneType ?? null },
       {
         onSuccess: () => toast.success('Perfil actualizado correctamente'),
-        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update profile'),
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'No se pudo actualizar el perfil'),
       },
     );
   }

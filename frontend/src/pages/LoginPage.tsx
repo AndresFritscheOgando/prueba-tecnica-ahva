@@ -40,7 +40,7 @@ export function LoginPage({ onSwitch, onLocked }: Props) {
           onLocked(err.retryAfterMinutes ?? 15);
           return;
         }
-        toast.error(err instanceof Error ? err.message : 'Login failed');
+        toast.error(err instanceof Error ? err.message : 'No se pudo iniciar sesión');
       },
     });
   }

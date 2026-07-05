@@ -14,10 +14,10 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
         if (await db.Users.AnyAsync(u => u.Email == request.Email))
-            throw new ConflictException("Email already in use.");
+            throw new ConflictException("El correo electrónico ya está en uso.");
 
         if (await db.Users.AnyAsync(u => u.Username == request.Username))
-            throw new ConflictException("Username already taken.");
+            throw new ConflictException("El nombre de usuario ya está en uso.");
 
         var user = new User
         {
@@ -35,12 +35,12 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.Username == request.Username)
-            ?? throw new UnauthorizedAccessException("Invalid username.");
+            ?? throw new UnauthorizedAccessException("Usuario inválido.");
 
         if (user.LockedUntil.HasValue && user.LockedUntil > DateTime.UtcNow)
         {
             var remaining = (int)Math.Ceiling((user.LockedUntil.Value - DateTime.UtcNow).TotalMinutes);
-            throw new AccountLockedException($"Account locked. Try again in {remaining} minute(s).", remaining);
+            throw new AccountLockedException($"Cuenta bloqueada. Intenta nuevamente en {remaining} minuto(s).", remaining);
         }
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -51,7 +51,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
                 user.LockedUntil = DateTime.UtcNow.AddMinutes(LockoutMinutes);
 
             await db.SaveChangesAsync();
-            throw new UnauthorizedAccessException("Invalid password.");
+            throw new UnauthorizedAccessException("Contraseña inválida.");
         }
 
         user.FailedLoginAttempts = 0;
@@ -73,10 +73,10 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<AuthResponse> RefreshAsync(RefreshRequest request)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == request.RefreshToken)
-            ?? throw new UnauthorizedAccessException("Invalid refresh token.");
+            ?? throw new UnauthorizedAccessException("Token de actualización inválido.");
 
         if (user.RefreshTokenExpiry < DateTime.UtcNow)
-            throw new UnauthorizedAccessException("Refresh token expired.");
+            throw new UnauthorizedAccessException("El token de actualización ha expirado.");
 
         return await IssueTokens(user);
     }
@@ -84,7 +84,7 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<UserProfileResponse> GetProfileAsync(Guid userId)
     {
         var user = await db.Users.FindAsync(userId)
-            ?? throw new UnauthorizedAccessException("User not found.");
+            ?? throw new UnauthorizedAccessException("Usuario no encontrado.");
 
         return MapToProfile(user);
     }
@@ -92,11 +92,11 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IConfigura
     public async Task<UserProfileResponse> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
     {
         var user = await db.Users.FindAsync(userId)
-            ?? throw new UnauthorizedAccessException("User not found.");
+            ?? throw new UnauthorizedAccessException("Usuario no encontrado.");
 
         var newEmail = request.Email.ToLowerInvariant();
         if (newEmail != user.Email && await db.Users.AnyAsync(u => u.Email == newEmail))
-            throw new ConflictException("Email already in use.");
+            throw new ConflictException("El correo electrónico ya está en uso.");
 
         user.Email = newEmail;
         user.FirstName = request.FirstName;

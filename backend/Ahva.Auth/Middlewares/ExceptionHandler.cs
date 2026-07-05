@@ -15,7 +15,7 @@ public class ExceptionHandler : ExceptionFilterAttribute
             ConflictException ex         => (HttpStatusCode.Conflict,      ex.Message),
             AccountLockedException ex    => (HttpStatusCode.Forbidden,     ex.Message),
             UnauthorizedAccessException ex => (HttpStatusCode.Unauthorized, ex.Message),
-            _                            => (HttpStatusCode.InternalServerError, "An unexpected error occurred."),
+            _                            => (HttpStatusCode.InternalServerError, "Ocurrió un error inesperado."),
         };
 
         var response = ApiResponse<object>.Fail(message);

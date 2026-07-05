@@ -4,7 +4,7 @@ import { authApi, type AuthResponse } from '../api/auth';
 
 function toErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof TypeError) {
-    return 'Unable to reach the server. Please check your connection and try again.';
+    return 'No se pudo conectar con el servidor. Verifica tu conexión e intenta nuevamente.';
   }
   return err instanceof Error ? err.message : fallback;
 }
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       save(await authApi.register(username, email, password));
     } catch (err) {
-      toast.error(toErrorMessage(err, 'Registration failed'));
+      toast.error(toErrorMessage(err, 'No se pudo completar el registro'));
     }
   }
 
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (state.accessToken) await authApi.logout(state.accessToken);
     } catch (err) {
-      toast.error(toErrorMessage(err, 'Logout failed'));
+      toast.error(toErrorMessage(err, 'No se pudo cerrar sesión'));
     } finally {
       clear();
     }
@@ -67,6 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return ctx;
 }
