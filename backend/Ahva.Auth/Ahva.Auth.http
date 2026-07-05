@@ -1,0 +1,6 @@
+@Ahva.Auth_HostAddress = http://localhost:5252
+
+GET {{Ahva.Auth_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

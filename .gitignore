@@ -1,0 +1,28 @@
+# Secrets
+.env
+*.local
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+#Agents
+claude.md
