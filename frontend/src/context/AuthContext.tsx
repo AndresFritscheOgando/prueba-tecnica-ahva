@@ -21,7 +21,6 @@ interface AuthContextValue extends AuthState {
   setSession: (res: AuthResponse) => void;
   clearSession: () => void;
   authFetch: <T>(fn: (accessToken: string) => Promise<T>) => Promise<T>;
-  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -43,14 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('refreshToken');
     setState({ accessToken: null, refreshToken: null });
-  }
-
-  async function register(username: string, email: string, password: string) {
-    try {
-      save(await authApi.register(username, email, password));
-    } catch (err) {
-      toast.error(toErrorMessage(err, 'No se pudo completar el registro'));
-    }
   }
 
   async function logout() {
@@ -83,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, setSession: save, clearSession: clear, authFetch, register, logout }}>
+    <AuthContext.Provider value={{ ...state, setSession: save, clearSession: clear, authFetch, logout }}>
       {children}
     </AuthContext.Provider>
   );

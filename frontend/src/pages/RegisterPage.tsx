@@ -1,6 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { registerSchema, type RegisterFormValues } from '@/lib/registerSchema';
+import { useRegisterMutation } from '@/hooks/useRegister';
 import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,28 +17,37 @@ interface Props {
 }
 
 export function RegisterPage({ onSwitch }: Props) {
-  const { register } = useAuth();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { setSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const registerMutation = useRegisterMutation();
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await register(username, email, password);
-    } finally {
-      setLoading(false);
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { 
+      username: '', 
+      email: '', 
+      password: '' 
+    },
+  });
+
+  function onSubmit(values: RegisterFormValues) {
+    registerMutation.mutate(values, {
+      onSuccess: setSession,
+      onError: (err) => {
+        toast.error(err instanceof Error ? err.message : 'No se pudo completar el registro');
+      },
+    });
   }
 
   return (
     <AuthLayout>
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="username">Usuario</Label>
               <div className="relative">
@@ -42,12 +56,11 @@ export function RegisterPage({ onSwitch }: Props) {
                   id="username"
                   placeholder="Ingresar usuario"
                   className="pl-9"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  minLength={3}
-                  required
+                  aria-invalid={!!errors.username}
+                  {...register('username')}
                 />
               </div>
+              {errors.username && <p className="text-xs text-red-700">{errors.username.message}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Correo electrónico</Label>
@@ -58,11 +71,11 @@ export function RegisterPage({ onSwitch }: Props) {
                   type="email"
                   placeholder="Ingresar correo"
                   className="pl-9"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  aria-invalid={!!errors.email}
+                  {...register('email')}
                 />
               </div>
+              {errors.email && <p className="text-xs text-red-700">{errors.email.message}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="password">Contraseña</Label>
@@ -73,10 +86,8 @@ export function RegisterPage({ onSwitch }: Props) {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Ingresar contraseña (8+)"
                   className="pl-9 pr-9"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  minLength={8}
-                  required
+                  aria-invalid={!!errors.password}
+                  {...register('password')}
                 />
                 <button
                   type="button"
@@ -87,10 +98,15 @@ export function RegisterPage({ onSwitch }: Props) {
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
+              {errors.password && <p className="text-xs text-red-700">{errors.password.message}</p>}
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full bg-slate-600 hover:bg-slate-700">
-              {loading ? 'Creando…' : 'Crear cuenta'}
+            <Button
+              type="submit"
+              disabled={registerMutation.isPending}
+              className="w-full bg-slate-600 hover:bg-slate-700"
+            >
+              {registerMutation.isPending ? 'Creando…' : 'Crear cuenta'}
             </Button>
 
             <p className="text-center text-sm text-gray-600">
