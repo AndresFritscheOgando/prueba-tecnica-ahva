@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useForm, type FieldError, type UseFormRegister } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bell,
   Building2,
-  Check,
   CircleHelp,
   FileText,
   Home,
   Menu,
-  Pencil,
   Search,
   User as UserIcon,
-  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { authApi, type UserProfile } from '../api/auth';
+import type { UserProfile } from '../api/auth';
+import { profileSchema, type ProfileFormOutput, type ProfileFormValues } from '@/lib/profileSchema';
+import { useProfileQuery, useUpdateProfileMutation } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-type FieldKey = Exclude<keyof UserProfile, 'id' | 'username'>;
+type FieldKey = keyof ProfileFormValues;
+type ActiveTab = 'basic' | 'responsibilities' | 'history';
 
 interface FieldConfig {
   key: FieldKey;
@@ -45,100 +47,105 @@ const FIELDS: FieldConfig[] = [
   { key: 'contractDate', label: 'Fecha de contratación', type: 'date' },
 ];
 
-const TABS = ['Información básica', 'Responsabilidades', 'Historial de responsabilidades'] as const;
+const emptyFormValues: ProfileFormValues = {
+  email: '',
+  firstName: '',
+  paternalSurname: '',
+  maternalSurname: '',
+  documentType: '',
+  documentNumber: '',
+  birthDate: '',
+  nationality: '',
+  sex: '',
+  secondaryEmail: '',
+  mobilePhone: '',
+  secondaryPhone: '',
+  contractType: '',
+  contractDate: '',
+};
+
+function toFormValues(profile: UserProfile): ProfileFormValues {
+  return {
+    email: profile.email,
+    firstName: profile.firstName ?? '',
+    paternalSurname: profile.paternalSurname ?? '',
+    maternalSurname: profile.maternalSurname ?? '',
+    documentType: profile.documentType ?? '',
+    documentNumber: profile.documentNumber ?? '',
+    birthDate: profile.birthDate ?? '',
+    nationality: profile.nationality ?? '',
+    sex: profile.sex ?? '',
+    secondaryEmail: profile.secondaryEmail ?? '',
+    mobilePhone: profile.mobilePhone ?? '',
+    secondaryPhone: profile.secondaryPhone ?? '',
+    contractType: profile.contractType ?? '',
+    contractDate: profile.contractDate ?? '',
+  };
+}
 
 function displayName(profile: UserProfile): string {
   const parts = [profile.firstName, profile.paternalSurname, profile.maternalSurname].filter(Boolean);
   return parts.length > 0 ? parts.join(' ') : profile.username;
 }
 
-interface ProfileFieldProps {
+function FormField({
+  config,
+  register,
+  error,
+}: {
   config: FieldConfig;
-  value: string | null;
-  editing: boolean;
-  onStartEdit: () => void;
-  onCancel: () => void;
-  onSave: (value: string) => void;
-  saving: boolean;
-}
-
-function ProfileField({ config, value, editing, onStartEdit, onCancel, onSave, saving }: ProfileFieldProps) {
-  const [draft, setDraft] = useState(value ?? '');
-
-  useEffect(() => {
-    if (editing) setDraft(value ?? '');
-  }, [editing, value]);
-
+  register: UseFormRegister<ProfileFormValues>;
+  error?: FieldError;
+}) {
   return (
     <div className="flex flex-col gap-1">
-      <Label className="text-xs text-muted-foreground">{config.label}</Label>
-      {editing ? (
-        <div className="flex items-center gap-1">
-          <Input
-            type={config.type}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            autoFocus
-            disabled={saving}
-          />
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            aria-label="Guardar"
-            disabled={saving}
-            onClick={() => onSave(draft)}
-          >
-            <Check className="size-4 text-green-700" />
-          </Button>
-          <Button type="button" size="icon" variant="ghost" aria-label="Cancelar" disabled={saving} onClick={onCancel}>
-            <X className="size-4 text-red-700" />
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1">
-          <div className="flex h-10 flex-1 items-center rounded-md border border-border bg-secondary/60 px-3 text-sm text-foreground">
-            {value || '—'}
-          </div>
-          <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${config.label}`} onClick={onStartEdit}>
-            <Pencil className="size-4 text-muted-foreground" />
-          </Button>
-        </div>
-      )}
+      <Label htmlFor={config.key} className="text-xs text-muted-foreground">
+        {config.label}
+      </Label>
+      <Input id={config.key} type={config.type} aria-invalid={!!error} {...register(config.key)} />
+      {error && <p className="text-xs text-red-700">{error.message}</p>}
     </div>
   );
 }
 
 export function ProfilePage() {
   const { accessToken, logout } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [editingKey, setEditingKey] = useState<FieldKey | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
+
+  const profileQuery = useProfileQuery(accessToken);
+  const updateMutation = useUpdateProfileMutation(accessToken);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProfileFormValues, unknown, ProfileFormOutput>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: emptyFormValues,
+  });
 
   useEffect(() => {
-    if (!accessToken) return;
-    authApi
-      .me(accessToken)
-      .then(setProfile)
-      .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load profile'))
-      .finally(() => setLoading(false));
-  }, [accessToken]);
+    if (profileQuery.data) reset(toFormValues(profileQuery.data));
+  }, [profileQuery.data, reset]);
 
-  async function handleSave(key: FieldKey, value: string) {
-    if (!profile || !accessToken) return;
-    setSaving(true);
-    try {
-      const updated = await authApi.updateMe(accessToken, { ...profile, [key]: value || null });
-      setProfile(updated);
-      setEditingKey(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update profile');
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    if (profileQuery.error) {
+      toast.error(profileQuery.error instanceof Error ? profileQuery.error.message : 'Failed to load profile');
     }
+  }, [profileQuery.error]);
+
+  function onSubmit(values: ProfileFormOutput) {
+    updateMutation.mutate(
+      { ...values, secondaryPhoneType: profileQuery.data?.secondaryPhoneType ?? null },
+      {
+        onSuccess: () => toast.success('Perfil actualizado correctamente'),
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update profile'),
+      },
+    );
   }
+
+  const profile = profileQuery.data;
 
   return (
     <div className="flex min-h-svh">
@@ -202,7 +209,7 @@ export function ProfilePage() {
               <h1 className="text-2xl font-semibold text-foreground">Perfil de usuario</h1>
             </div>
 
-            {loading || !profile ? (
+            {profileQuery.isLoading || !profile ? (
               <Card>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">Cargando perfil…</p>
@@ -226,37 +233,55 @@ export function ProfilePage() {
                 </div>
 
                 <div className="flex gap-8 border-b border-border px-8">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className={`border-b-2 py-3 text-sm font-medium transition-colors ${
-                        activeTab === tab
-                          ? 'border-red-800 text-red-800'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('basic')}
+                    className={`border-b-2 py-3 text-sm font-medium transition-colors ${
+                      activeTab === 'basic'
+                        ? 'border-red-800 text-red-800'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Información básica
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('responsibilities')}
+                    className={`border-b-2 py-3 text-sm font-medium transition-colors ${
+                      activeTab === 'responsibilities'
+                        ? 'border-red-800 text-red-800'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Responsabilidades
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('history')}
+                    className={`border-b-2 py-3 text-sm font-medium transition-colors ${
+                      activeTab === 'history'
+                        ? 'border-red-800 text-red-800'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Historial de responsabilidades
+                  </button>
                 </div>
 
-                {activeTab === TABS[0] ? (
-                  <div className="grid grid-cols-1 gap-6 px-8 py-8 sm:grid-cols-2 lg:grid-cols-3">
+                {activeTab === 'basic' ? (
+                  <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="grid grid-cols-1 gap-6 px-8 py-8 sm:grid-cols-2 lg:grid-cols-3"
+                  >
                     {FIELDS.map((field) => (
-                      <ProfileField
-                        key={field.key}
-                        config={field}
-                        value={profile[field.key]}
-                        editing={editingKey === field.key}
-                        saving={saving}
-                        onStartEdit={() => setEditingKey(field.key)}
-                        onCancel={() => setEditingKey(null)}
-                        onSave={(value) => handleSave(field.key, value)}
-                      />
+                      <FormField key={field.key} config={field} register={register} error={errors[field.key]} />
                     ))}
-                  </div>
+                    <div className="col-span-full flex justify-end">
+                      <Button type="submit" disabled={updateMutation.isPending}>
+                        {updateMutation.isPending ? 'Guardando…' : 'Guardar cambios'}
+                      </Button>
+                    </div>
+                  </form>
                 ) : (
                   <div className="px-8 py-16 text-center text-sm text-muted-foreground">
                     Sin información disponible.
