@@ -87,7 +87,7 @@ export const authApi = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const envelope: ApiResponse<UserProfile> = await res.json();
-    if (!res.ok) throw new Error(envelope.error ?? 'No se pudo cargar el perfil');
+    if (!res.ok) throw new ApiError(envelope.error ?? 'No se pudo cargar el perfil', res.status);
     return envelope.data!;
   },
 
@@ -101,7 +101,7 @@ export const authApi = {
       body: JSON.stringify(profile),
     });
     const envelope: ApiResponse<UserProfile> = await res.json();
-    if (!res.ok) throw new Error(envelope.error ?? 'No se pudo actualizar el perfil');
+    if (!res.ok) throw new ApiError(envelope.error ?? 'No se pudo actualizar el perfil', res.status);
     return envelope.data!;
   },
 };

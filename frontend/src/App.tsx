@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AccountLockedPage } from './pages/AccountLockedPage';
+import { IdleSessionManager } from '@/components/idle-session-manager';
 import { Toaster } from '@/components/ui/sonner';
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContent />
+        <IdleSessionManager />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

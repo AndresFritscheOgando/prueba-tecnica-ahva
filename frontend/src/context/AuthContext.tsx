@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { authApi, type AuthResponse } from '../api/auth';
+import { ApiError, authApi, type AuthResponse } from '../api/auth';
 
 function toErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof TypeError) {
@@ -9,6 +9,9 @@ function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+const SESSION_EXPIRED_MESSAGE =
+  'Su sesión ha expirado debido a inactividad. Por favor, inicie sesión nuevamente.';
+
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
@@ -16,6 +19,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   setSession: (res: AuthResponse) => void;
+  clearSession: () => void;
+  authFetch: <T>(fn: (accessToken: string) => Promise<T>) => Promise<T>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -58,8 +63,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function authFetch<T>(fn: (accessToken: string) => Promise<T>): Promise<T> {
+    try {
+      return await fn(state.accessToken!);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401 && state.refreshToken) {
+        try {
+          const res = await authApi.refresh(state.refreshToken);
+          save(res);
+          return await fn(res.accessToken);
+        } catch {
+          clear();
+          toast.error(SESSION_EXPIRED_MESSAGE);
+          throw err;
+        }
+      }
+      throw err;
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ ...state, setSession: save, register, logout }}>
+    <AuthContext.Provider value={{ ...state, setSession: save, clearSession: clear, authFetch, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
